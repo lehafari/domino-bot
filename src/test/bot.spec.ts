@@ -2,10 +2,8 @@ import { basicStrategy } from '../strategies';
 import { Hand, BoardState, Play, Tile } from '../types';
 
 describe('basicStrategy', () => {
-  // Función auxiliar para crear una ficha
   const createTile = (top: number, bottom: number): Tile => ({ top, bottom });
 
-  // Función auxiliar para crear una jugada
   const createPlay = (
     top: number,
     bottom: number,
@@ -90,10 +88,11 @@ describe('basicStrategy', () => {
     const hand: Hand = [createTile(1, 1), createTile(2, 2), createTile(3, 3)];
     const boardState: BoardState = {
       plays: [
-        createPlay(6, 6, 'top', 0),
-        createPlay(6, 5, 'top', 1),
-        createPlay(5, 4, 'top', 2),
-        createPlay(4, 3, 'top', 3),
+        createPlay(6, 1, 'top', 0),
+        createPlay(6, 6, 'top', 1),
+        createPlay(6, 5, 'top', 2),
+        createPlay(5, 4, 'top', 3),
+        createPlay(4, 3, 'top', 4),
       ],
       passed: [],
     };
@@ -102,7 +101,7 @@ describe('basicStrategy', () => {
     expect(result).toEqual({
       tile: { top: 3, bottom: 3 },
       side: 'top',
-      index: 4,
+      index: 5,
     });
   });
 

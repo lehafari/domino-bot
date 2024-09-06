@@ -1,62 +1,33 @@
-import type { BoardState, Hand, Play, Strategy, Tile } from '../types';
+import type { BoardState, DominoStrategy, Hand, Play, Tile } from '../types';
 
-export const basicStrategy: Strategy = {
+type NumberCount = Record<number, number>;
+
+export const basicStrategy: DominoStrategy = {
   makeMove(hand: Hand, boardState: BoardState, playerId: number): Play | null {
     const board = boardState.plays;
 
-    // Si el tablero está vacío, selecciona la ficha más alta para jugar primero
+    // If the board is empty, play the highest tile
     if (board.length === 0) {
-      const highestTile = this.findHighestTile(hand);
-      return { tile: highestTile, side: 'top', index: 0 };
+      return this.playFirstTile(hand);
     }
 
-    // Determinar los números disponibles en los extremos del tablero
-    const { topNumber, bottomNumber } = this.findAvailableSides(board);
-
-    let bestPlay: Play | null = null;
-    let bestScore = -1;
-
-    // Conteo básico de fichas jugadas
+    const { headNumber, backNumber } = this.findAvailableSides(board);
     const playedNumbers = this.countPlayedNumbers(board);
 
-    // Iteración sobre la mano
+    let bestPlay = this.findBestPlay(
+      hand,
+      headNumber,
+      backNumber,
+      playedNumbers,
+      board.length
+    );
 
-    for (const tile of hand) {
-      const score = this.calculateTileScore(tile, playedNumbers);
-
-      if (tile.top === topNumber || tile.bottom === topNumber) {
-        const side = tile.top === topNumber ? 'top' : 'bottom';
-        const potentialPlay = { tile, side, index: board.length } as Play;
-        if (
-          score > bestScore ||
-          (score === bestScore && this.shouldPreferTop(bestPlay, potentialPlay))
-        ) {
-          bestPlay = potentialPlay;
-          bestScore = score;
-        }
-      }
-
-      if (tile.top === bottomNumber || tile.bottom === bottomNumber) {
-        const side = tile.top === bottomNumber ? 'top' : 'bottom';
-
-        const potentialPlay = { tile, side, index: board.length } as Play;
-        if (
-          score > bestScore ||
-          (score === bestScore &&
-            !this.shouldPreferTop(bestPlay, potentialPlay))
-        ) {
-          bestPlay = potentialPlay;
-          bestScore = score;
-        }
-      }
-    }
-
-    // Manejo de finales de juego
+    // Special handling for endgame scenarios
     if (hand.length <= 3) {
       bestPlay = this.handleEndgame(
         hand,
-        topNumber,
-        bottomNumber,
+        headNumber,
+        backNumber,
         bestPlay,
         board.length
       );
@@ -65,17 +36,24 @@ export const basicStrategy: Strategy = {
     return bestPlay;
   },
 
+  playFirstTile(hand: Hand): Play {
+    const highestTile = this.findHighestTile(hand);
+    // When playing the first tile, we always play it on the 'top' side
+    return { tile: highestTile, side: 'top', index: 0 };
+  },
+
   findAvailableSides(board: Play[]): {
-    topNumber: number;
-    bottomNumber: number;
+    headNumber: number;
+    backNumber: number;
   } {
     const firstPlay = board[0];
     const lastPlay = board[board.length - 1];
 
+    // Determine the available numbers on both ends of the board
     return {
-      topNumber:
+      headNumber:
         firstPlay.side === 'top' ? firstPlay.tile.bottom : firstPlay.tile.top,
-      bottomNumber:
+      backNumber:
         lastPlay.side === 'bottom' ? lastPlay.tile.top : lastPlay.tile.bottom,
     };
   },
@@ -92,36 +70,89 @@ export const basicStrategy: Strategy = {
     return tile.top === number || tile.bottom === number;
   },
 
-  calculateTileScore(
-    tile: Tile,
-    playedNumbers: Record<number, number>
-  ): number {
+  calculateTileScore(tile: Tile, playedNumbers: NumberCount): number {
     let score = tile.top + tile.bottom;
-
-    // Priorizar fichas dobles
-    if (tile.top === tile.bottom) {
-      score += 10;
-    }
-
-    // Ajustar score basado en la frecuencia de los números jugados
+    // Prioritize doubles
+    if (tile.top === tile.bottom) score += 10;
+    // Adjust score based on how often the numbers have been played
     score -= (playedNumbers[tile.top] || 0) + (playedNumbers[tile.bottom] || 0);
-
     return score;
   },
 
   shouldPreferTop(currentBest: Play | null, newPlay: Play): boolean {
-    // Preferir jugar en el extremo superior en caso de empate
-
+    // Prefer playing on the top side in case of a tie
     return currentBest === null || newPlay.side === 'top';
   },
 
-  countPlayedNumbers(board: Play[]): Record<number, number> {
-    const count: Record<number, number> = {};
-    for (const play of board) {
+  countPlayedNumbers(board: Play[]): NumberCount {
+    return board.reduce((count, play) => {
       count[play.tile.top] = (count[play.tile.top] || 0) + 1;
       count[play.tile.bottom] = (count[play.tile.bottom] || 0) + 1;
+      return count;
+    }, {} as NumberCount);
+  },
+
+  findBestPlay(
+    hand: Hand,
+    headNumber: number,
+    backNumber: number,
+    playedNumbers: NumberCount,
+    boardLength: number
+  ): Play | null {
+    return hand.reduce<{ bestPlay: Play | null; bestScore: number }>(
+      (acc, tile) => {
+        const score = this.calculateTileScore(tile, playedNumbers);
+        // Try to play the tile on both ends of the board
+        const topPlay = this.createPlay(tile, headNumber, boardLength);
+        const bottomPlay = this.createPlay(tile, backNumber, boardLength);
+
+        return this.updateBestPlay(acc, score, topPlay, bottomPlay);
+      },
+      { bestPlay: null, bestScore: -1 }
+    ).bestPlay;
+  },
+
+  createPlay(tile: Tile, number: number, index: number): Play | null {
+    // Check if the tile can be played
+    if (!this.canPlayTile(tile, number)) {
+      return null;
     }
-    return count;
+
+    let tileSide: 'top' | 'bottom';
+
+    // Determine which side of the tile matches the board number
+    if (tile.top === number) {
+      tileSide = 'top';
+    } else {
+      tileSide = 'bottom';
+    }
+
+    return { tile, side: tileSide, index };
+  },
+
+  updateBestPlay(
+    acc: { bestPlay: Play | null; bestScore: number },
+    score: number,
+    topPlay: Play | null,
+    bottomPlay: Play | null
+  ): { bestPlay: Play | null; bestScore: number } {
+    if (
+      topPlay &&
+      (score > acc.bestScore ||
+        (score === acc.bestScore &&
+          this.shouldPreferTop(acc.bestPlay, topPlay)))
+    ) {
+      return { bestPlay: topPlay, bestScore: score };
+    }
+    if (
+      bottomPlay &&
+      (score > acc.bestScore ||
+        (score === acc.bestScore &&
+          !this.shouldPreferTop(acc.bestPlay, bottomPlay)))
+    ) {
+      return { bestPlay: bottomPlay, bestScore: score };
+    }
+    return acc;
   },
 
   handleEndgame(
@@ -131,28 +162,29 @@ export const basicStrategy: Strategy = {
     currentBestPlay: Play | null,
     index: number
   ): Play | null {
-    // En el final del juego, priorizar jugar la ficha más alta que sea posible
-    let highestPlayableTile = null;
-    let highestSum = -1;
+    // In the endgame, prioritize playing the highest value tile that can be played
+    const highestPlayableTile = hand.reduce<{ tile: Tile | null; sum: number }>(
+      (acc, tile) => {
+        const sum = tile.top + tile.bottom;
+        if (
+          sum > acc.sum &&
+          (this.canPlayTile(tile, topNumber) ||
+            this.canPlayTile(tile, bottomNumber))
+        ) {
+          return { tile, sum };
+        }
+        return acc;
+      },
+      { tile: null, sum: -1 }
+    ).tile;
 
-    for (const tile of hand) {
-      const sum = tile.top + tile.bottom;
-      if (
-        sum > highestSum &&
-        (this.canPlayTile(tile, topNumber) ||
-          this.canPlayTile(tile, bottomNumber))
-      ) {
-        highestPlayableTile = tile;
-        highestSum = sum;
+    if (highestPlayableTile) {
+      // Prefer playing on the top if possible
+      if (this.canPlayTile(highestPlayableTile, topNumber)) {
+        return this.createPlay(highestPlayableTile, topNumber, index);
+      } else {
+        return this.createPlay(highestPlayableTile, bottomNumber, index);
       }
-    }
-
-    if (
-      highestPlayableTile &&
-      this.canPlayTile(highestPlayableTile, topNumber)
-    ) {
-      const side = highestPlayableTile.top === topNumber ? 'top' : 'bottom';
-      return { tile: highestPlayableTile, side, index };
     }
 
     return currentBestPlay;

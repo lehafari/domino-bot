@@ -1,35 +1,36 @@
 import { basicStrategy } from './strategies';
-import type { Hand, Strategy, BoardState, Play } from './types';
+import type { Hand, DominoStrategy, BoardState, Play } from './types';
+
+type Difficulty = 'basic' | 'intermediate' | 'advanced';
 
 class DominoBot {
-  private strategy!: Strategy;
-  private playerId: number;
+  private readonly playerId: number;
+  private strategy: DominoStrategy;
 
-  constructor(
-    playerId: number,
-    difficulty: 'basic' | 'intermediate' | 'advanced' = 'basic'
-  ) {
+  constructor(playerId: number, difficulty: Difficulty = 'basic') {
     this.playerId = playerId;
-    this.setDifficulty(difficulty);
+    this.strategy = this.getStrategy(difficulty);
   }
-  setDifficulty(difficulty: 'basic' | 'intermediate' | 'advanced') {
+
+  public makeMove(hand: Hand, boardState: BoardState): Play | null {
+    return this.strategy.makeMove(hand, boardState, this.playerId);
+  }
+
+  public setDifficulty(difficulty: Difficulty): void {
+    this.strategy = this.getStrategy(difficulty);
+  }
+
+  private getStrategy(difficulty: Difficulty): DominoStrategy {
     switch (difficulty) {
       case 'basic':
-        this.strategy = basicStrategy;
-        break;
+        return basicStrategy;
       case 'intermediate':
-        //this.strategy = intermediateStrategy;
-        break;
+        throw new Error('Intermediate strategy not implemented');
       case 'advanced':
-        //  this.strategy = advancedStrategy;
-        break;
+        throw new Error('Advanced strategy not implemented');
       default:
-        throw new Error('Invalid difficulty level');
+        throw new Error(`Invalid difficulty level: ${difficulty}`);
     }
-  }
-
-  makeMove(hand: Hand, boardState: BoardState): Play | null {
-    return this.strategy.makeMove(hand, boardState, this.playerId);
   }
 }
 
