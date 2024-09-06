@@ -9,7 +9,6 @@ jobs:
   release_please:
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -19,20 +18,26 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          if [ -e yarn.lock ]; then
+          yarn install --frozen-lockfile
+          elif [ -e package-lock.json ]; then
+          npm ci
+          else
+          npm i
+          fi
 
       - name: Release Please
         uses: google-github-actions/release-please-action@v4
         with:
-          release-type: node 
+          release-type: node
           package-name: domino-bot
-          token: ${{ secrets.TOKEN }} 
+          token: ${{ secrets.TOKEN }}
 
   publish_to_npm:
     needs: release_please
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout code
         uses: actions/checkout@v2
 
