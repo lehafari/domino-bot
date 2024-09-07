@@ -39,7 +39,7 @@ export const basicStrategy: DominoStrategy = {
   playFirstTile(hand: Hand): Play {
     const highestTile = this.findHighestTile(hand);
     // When playing the first tile, we always play it on the 'top' side
-    return { tile: highestTile, side: 'top', index: 0 };
+    return { tile: highestTile, side: 'TOP', index: 0 };
   },
 
   findAvailableSides(board: Play[]): {
@@ -52,9 +52,9 @@ export const basicStrategy: DominoStrategy = {
     // Determine the available numbers on both ends of the board
     return {
       headNumber:
-        firstPlay.side === 'top' ? firstPlay.tile.bottom : firstPlay.tile.top,
+        firstPlay.side === 'TOP' ? firstPlay.tile.bottom : firstPlay.tile.top,
       backNumber:
-        lastPlay.side === 'bottom' ? lastPlay.tile.top : lastPlay.tile.bottom,
+        lastPlay.side === 'BOTTOM' ? lastPlay.tile.top : lastPlay.tile.bottom,
     };
   },
 
@@ -81,7 +81,7 @@ export const basicStrategy: DominoStrategy = {
 
   shouldPreferTop(currentBest: Play | null, newPlay: Play): boolean {
     // Prefer playing on the top side in case of a tie
-    return currentBest === null || newPlay.side === 'top';
+    return currentBest === null || newPlay.side === 'TOP';
   },
 
   countPlayedNumbers(board: Play[]): NumberCount {
@@ -118,13 +118,13 @@ export const basicStrategy: DominoStrategy = {
       return null;
     }
 
-    let tileSide: 'top' | 'bottom';
+    let tileSide: 'TOP' | 'BOTTOM';
 
     // Determine which side of the tile matches the board number
     if (tile.top === number) {
-      tileSide = 'top';
+      tileSide = 'TOP';
     } else {
-      tileSide = 'bottom';
+      tileSide = 'BOTTOM';
     }
 
     return { tile, side: tileSide, index };

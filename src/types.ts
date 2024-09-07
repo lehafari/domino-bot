@@ -5,7 +5,7 @@ export type Tile = {
 
 export type Play = {
   tile: Tile;
-  side: 'top' | 'bottom';
+  side: 'TOP' | 'BOTTOM';
   index: number;
 };
 
