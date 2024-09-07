@@ -23,6 +23,4 @@ npm install
 yarn install
 ```
 
-
-
-
+### More documentation soon...
