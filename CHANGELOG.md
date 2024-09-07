@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/lehafari/domino-bot/compare/v0.2.1...v0.2.2) (2024-09-07)
+
+
+### Bug Fixes
+
+* change side data type ([bc9e0c2](https://github.com/lehafari/domino-bot/commit/bc9e0c2cbf8f95b5568163c4edfa9e01ad76003a))
+
 ## [0.2.1](https://github.com/lehafari/domino-bot/compare/v0.2.0...v0.2.1) (2024-09-07)
 
 
