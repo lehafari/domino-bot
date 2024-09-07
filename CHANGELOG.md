@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/lehafari/domino-bot/compare/v0.2.0...v0.2.1) (2024-09-07)
+
+
+### Bug Fixes
+
+* add a line in readme file ([6b2f388](https://github.com/lehafari/domino-bot/commit/6b2f388b6ac5fcca355b33d097cbe2e9b975ba45))
+
 ## [0.2.0](https://github.com/lehafari/domino-bot/compare/v0.1.0...v0.2.0) (2024-09-06)
 
 
