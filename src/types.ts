@@ -5,8 +5,8 @@ export type Tile = {
 
 export type Play = {
   tile: Tile;
-  side: 'TOP' | 'BOTTOM';
   index: number;
+  side: 'TOP' | 'BOTTOM' | 'CENTER';
 };
 
 export type Hand = Tile[];
