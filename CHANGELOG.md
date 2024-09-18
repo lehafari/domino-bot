@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/lehafari/domino-bot/compare/v0.2.2...v0.2.3) (2024-09-18)
+
+
+### Bug Fixes
+
+* handle second move by the firts move ([5fb7e45](https://github.com/lehafari/domino-bot/commit/5fb7e4540f8cf2c98c7ad20ceccab08a56b622f0))
+
 ## [0.2.2](https://github.com/lehafari/domino-bot/compare/v0.2.1...v0.2.2) (2024-09-07)
 
 
