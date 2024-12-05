@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/lehafari/domino-bot/compare/v0.2.3...v0.2.4) (2024-12-05)
+
+
+### Bug Fixes
+
+* test edge case and fix error ([8ae8e58](https://github.com/lehafari/domino-bot/commit/8ae8e5800745fdcfea2790e10cece077baf1a708))
+
 ## [0.2.3](https://github.com/lehafari/domino-bot/compare/v0.2.2...v0.2.3) (2024-09-18)
 
 
